@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Paskah 2026 - Kunjungan Kasih</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // --- MASUKKAN KONFIGURASI FIREBASE ANDA DI SINI ---
+        const firebaseConfig = {
+            apiKey: "ISI_API_KEY_ANDA",
+            authDomain: "PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://paskah-sm-gkpstangerang-2026-default-rtdb.asia-southeast1.firebasedatabase.app/",
+            projectId: "PROJECT_ID",
+            storageBucket: "PROJECT_ID.appspot.com",
+            messagingSenderId: "SENDER_ID",
+            appId: "APP_ID"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const dbRef = ref(db, 'pendaftaran_paskah_2026');
+
+        const MAX_KUOTA = 4;
+        const daftarKelas = ["Daniel", "Paulus", "Ester", "Timotius", "Abraham"];
+        let dataPendaftarGlobal = [];
+
+        // 1. MONITORING REAL-TIME
+        onValue(dbRef, (snapshot) => {
+            const data = snapshot.val() || {};
+            dataPendaftarGlobal = Object.values(data);
+            
+            const selectKelas = document.getElementById('kelasSM');
+            const currentSelection = selectKelas.value;
+            selectKelas.innerHTML = '<option value="">-- Pilih Kelas --</option>';
+
+            const rekapHtml = [];
+            
+            daftarKelas.forEach(kelas => {
+                const listAnak = dataPendaftarGlobal.filter(p => p.kelas === kelas);
+                const jumlah = listAnak.length;
+                const sisa = MAX_KUOTA - jumlah;
+
+                const option = document.createElement('option');
+                option.value = kelas;
+                option.disabled = sisa <= 0;
+                option.textContent = sisa <= 0 ? `Kelas ${kelas} (PENUH)` : `Kelas ${kelas} (Sisa ${sisa} slot)`;
+                selectKelas.appendChild(option);
+
+                let barisAnak = listAnak.map((p, i) => `<div class="text-[11px] text-gray-600 border-b py-1">${i+1}. ${p.namaAnak}</div>`).join('');
+                rekapHtml.push(`
+                    <div class="border p-3 rounded bg-gray-50 shadow-sm">
+                        <div class="flex justify-between items-center mb-2 border-b-2 border-blue-100 pb-1">
+                            <span class="font-bold text-blue-800 text-sm">${kelas}</span>
+                            <span class="text-[10px] px-2 py-0.5 rounded-full ${sisa <= 0 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'} font-bold">${jumlah}/${MAX_KUOTA}</span>
+                        </div>
+                        ${barisAnak || '<span class="text-[10px] italic text-gray-400">Belum ada peserta</span>'}
+                    </div>
+                `);
+            });
+            
+            selectKelas.value = currentSelection;
+            document.getElementById('gridAdmin').innerHTML = rekapHtml.join('');
+            document.getElementById('totalPeserta').textContent = dataPendaftarGlobal.length;
+        });
+
+        // 2. FUNGSI KIRIM DATA
+        window.submitForm = function(e) {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const status = document.getElementById('statusMessage');
+            
+            const data = {
+                namaAnak: document.getElementById('namaAnak').value,
+                kelas: document.getElementById('kelasSM').value,
+                namaOrtu: document.getElementById('namaOrtu').value,
+                timestamp: new Date().toLocaleString('id-ID')
+            };
+
+            btn.disabled = true;
+            btn.textContent = "Memproses...";
+
+            push(dbRef, data).then(() => {
+                status.textContent = "Pendaftaran Berhasil!";
+                status.className = "mt-4 p-3 bg-green-100 text-green-700 rounded text-center font-bold text-sm shadow-inner";
+                status.classList.remove('hidden');
+                document.getElementById('registrationForm').reset();
+                setTimeout(() => status.classList.add('hidden'), 5000);
+            }).finally(() => {
+                btn.disabled = false;
+                btn.textContent = "DAFTAR SEKARANG";
+            });
+        };
+
+        // 3. FUNGSI EXPORT EXCEL
+        window.exportToExcel = function() {
+            if (dataPendaftarGlobal.length === 0) {
+                alert("Belum ada data untuk diexport.");
+                return;
+            }
+
+            const reportData = dataPendaftarGlobal.map((item, index) => ({
+                "No": index + 1,
+                "Nama Anak": item.namaAnak,
+                "Kelas": item.kelas,
+                "Nama Orang Tua": item.namaOrtu,
+                "Waktu Daftar": item.timestamp
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(reportData);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Pendaftar Paskah");
+            XLSX.writeFile(workbook, `Data_Pendaftaran_Paskah_Tangerang_2026.xlsx`);
+        };
+    </script>
+</head>
+<body class="bg-gray-100 min-h-screen pb-12 font-sans text-gray-800">
+
+    <div class="max-w-md mx-auto pt-8 px-4">
+        <div class="bg-white rounded-3xl shadow-2xl overflow-hidden border-t-8 border-blue-600">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <img src="https://i.ibb.co/L5hYp0x/LOGO-GKPS-ASLI-1.png" alt="Logo GKPS" class="w-14 h-14 object-contain">
+                    
+                    <div class="text-center flex-1 px-2">
+                        <h1 class="text-xl font-black uppercase leading-tight tracking-tight text-gray-800">PENDAFTARAN</h1>
+                        <p class="text-blue-600 font-bold text-[10px] uppercase">Kunjungan Kasih Tangerang</p>
+                    </div>
+
+                    <img src="https://i.ibb.co/VvzXyVz/logo-tema2026.png" alt="Logo Tema 2026" class="w-14 h-14 object-contain">
+                </div>
+
+                <div class="bg-blue-50 rounded-xl p-4 mb-6 border border-blue-100">
+                    <p class="text-[10px] font-black text-blue-800 uppercase tracking-widest mb-1 text-center">Matius 28:5-6</p>
+                    <p class="text-sm font-bold text-gray-700 italic text-center leading-snug">"Yesus Bangkit, Sukacitaku Penuh!"</p>
+                    <hr class="my-2 border-blue-200">
+                    <p class="text-[11px] text-gray-600 leading-relaxed text-center">
+                        📍 Rumah Singgah Cancer, Tangerang<br>
+                        📅 28 Maret 2026 | 09.00 - 11.00 WIB
+                    </p>
+                </div>
+
+                <form id="registrationForm" onsubmit="submitForm(event)" class="space-y-4">
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase ml-1">Nama Anak</label>
+                        <input type="text" id="namaAnak" required class="w-full border-2 border-gray-50 rounded-xl p-3 bg-gray-50 focus:bg-white focus:border-blue-500 outline-none transition-all">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase ml-1">Pilih Kelas SM</label>
+                        <select id="kelasSM" required class="w-full border-2 border-gray-50 rounded-xl p-3 bg-gray-50 focus:bg-white focus:border-blue-500 outline-none transition-all"></select>
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-gray-500 uppercase ml-1">Nama Orang Tua</label>
+                        <input type="text" id="namaOrtu" required class="w-full border-2 border-gray-50 rounded-xl p-3 bg-gray-50 focus:bg-white focus:border-blue-500 outline-none transition-all">
+                    </div>
+                    <button type="submit" id="submitBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl shadow-lg shadow-blue-200 transition-all active:scale-95 uppercase tracking-wider">
+                        DAFTAR SEKARANG
+                    </button>
+                </form>
+                <div id="statusMessage" class="hidden"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="max-w-4xl mx-auto mt-12 px-4">
+        <div class="bg-white rounded-2xl shadow-xl p-6 border border-gray-200">
+            <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4 border-b pb-4">
+                <div class="text-center md:text-left">
+                    <h3 class="text-lg font-black text-gray-800 uppercase tracking-tighter">Monitoring Peserta</h3>
+                    <p class="text-[10px] text-gray-400 font-bold uppercase">Total Terdaftar: <span id="totalPeserta" class="text-blue-600">0</span> Anak</p>
+                </div>
+                
+                <button onclick="exportToExcel()" class="flex items-center bg-green-600 hover:bg-green-700 text-white text-[10px] font-bold px-6 py-3 rounded-full shadow-md transition-all active:scale-95">
+                    EXPORT KE EXCEL (.XLSX)
+                </button>
+            </div>
+            
+            <div id="gridAdmin" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                </div>
+        </div>
+    </div>
+
+</body>
+</html>
