@@ -26,8 +26,9 @@
         const db = getDatabase(app);
         const dbRef = ref(db, 'pendaftaran_paskah_2026');
 
-        const MAX_KUOTA = 4;
-        const daftarKelas = ["Daniel", "Paulus", "Ester", "Timotius", "Abraham"];
+        // UPDATE KUOTA DAN DAFTAR KELAS
+        const MAX_KUOTA = 5; 
+        const daftarKelas = ["Daniel", "Paulus", "Ester", "POS PI"];
         let dataPendaftarGlobal = [];
 
         // 1. MONITORING REAL-TIME
@@ -129,7 +130,7 @@
                     
                     <div class="text-center flex-1 px-2">
                         <h1 class="text-xl font-black uppercase leading-tight tracking-tight text-gray-800">PENDAFTARAN</h1>
-                        <p class="text-blue-600 font-bold text-[10px] uppercase">Kunjungan Kasih </p>
+                        <p class="text-blue-600 font-bold text-[10px] uppercase">Kunjungan Kasih</p>
                     </div>
 
                     <img src="Logo GKPS 2026-2030.jpg" alt="Logo Tema GKPS 2026-2030" class="w-14 h-14 object-contain rounded-sm shadow-sm">
@@ -202,7 +203,7 @@
                 </button>
             </div>
             
-            <div id="gridAdmin" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+            <div id="gridAdmin" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-3">
                 </div>
         </div>
     </div>
