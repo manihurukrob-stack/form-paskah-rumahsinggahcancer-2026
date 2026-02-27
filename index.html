@@ -53,9 +53,8 @@
                 option.textContent = sisa <= 0 ? `Kelas ${kelas} (PENUH)` : `Kelas ${kelas} (Sisa ${sisa} slot)`;
                 selectKelas.appendChild(option);
 
-                // Tambahan Fitur: Ikon Printer di sebelah nama anak
+                // Fitur: Ikon Printer di sebelah nama anak
                 let barisAnak = listAnak.map((p, i) => {
-                    // Cari index global untuk referensi saat mencetak ulang
                     const globalIdx = dataPendaftarGlobal.indexOf(p);
                     return `
                     <div class="flex justify-between items-center text-[11px] text-gray-700 border-b border-pink-100 py-1.5 hover:bg-white/50 px-1 rounded transition-colors">
@@ -82,6 +81,13 @@
             document.getElementById('totalPeserta').textContent = dataPendaftarGlobal.length;
         });
 
+        // FUNGSI UNTUK MEMULAI PENDAFTARAN DARI FLYER
+        window.startRegistration = function() {
+            document.getElementById('flyerWrapper').classList.add('hidden');
+            document.getElementById('mainContentWrapper').classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
         // FUNGSI UNTUK MENAMPILKAN TIKET
         window.showTicket = function(data) {
             document.getElementById('ticketNama').textContent = data.namaAnak;
@@ -93,7 +99,6 @@
             document.getElementById('mainContentWrapper').classList.add('hidden');
             document.getElementById('ticketWrapper').classList.remove('hidden');
             
-            // Otomatis scroll ke atas agar tiket terlihat penuh
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
@@ -102,7 +107,6 @@
             const data = dataPendaftarGlobal[index];
             if (data) {
                 showTicket(data);
-                // Sembunyikan notifikasi sukses karena ini cetak ulang, bukan pendaftaran baru
                 document.getElementById('successNotification').classList.add('hidden');
             }
         };
@@ -203,7 +207,21 @@
 
     <div class="absolute top-0 left-0 w-full h-2 easter-gradient opacity-80 no-print"></div>
 
-    <div id="mainContentWrapper" class="no-print">
+    <div id="flyerWrapper" class="no-print pt-8 px-4 max-w-lg mx-auto relative z-10 flex flex-col items-center justify-center min-h-screen">
+        <div class="card-bg rounded-[2rem] shadow-2xl overflow-hidden border border-white w-full">
+            <div class="h-3 w-full easter-gradient"></div>
+            
+            <img src="disclaimer pra-paskah.jpeg" alt="Flyer Kunjungan Kasih Pra-Paskah" class="w-full h-auto object-cover">
+            
+            <div class="p-6 bg-white text-center">
+                <p class="text-[11px] text-gray-500 font-medium mb-4 uppercase tracking-widest">Silakan baca informasi di atas sebelum mendaftar</p>
+                <button onclick="startRegistration()" class="w-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-black py-5 rounded-2xl shadow-lg shadow-pink-200/50 transition-all active:scale-95 uppercase tracking-widest text-lg animate-pulse border border-pink-400">
+                    Daftar Segera
+                </button>
+            </div>
+        </div>
+    </div>
+    <div id="mainContentWrapper" class="hidden no-print">
         <div class="max-w-md mx-auto pt-10 px-4 relative z-10">
             <div class="card-bg rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.08)] overflow-hidden border border-white">
                 <div class="h-3 w-full easter-gradient"></div>
@@ -356,9 +374,18 @@
                 </div>
             </div>
 
-            <div class="mt-6 text-center">
-                <p class="text-[9px] text-gray-400 italic">Harap tunjukkan e-ticket ini kepada panitia saat acara (bisa berupa *screenshot* atau cetak kertas).</p>
+            <div class="mt-5 bg-indigo-50/50 p-3.5 rounded-xl border border-indigo-100/70">
+                <p class="text-[10px] font-black text-indigo-800 mb-1.5 flex items-center">
+                    <svg class="w-3.5 h-3.5 mr-1 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    INFORMASI PENTING:
+                </p>
+                <ul class="text-[9.5px] text-gray-600 list-disc pl-4 space-y-1.5 text-left leading-tight font-medium">
+                    <li>E-ticket ini adalah <strong>tanda bukti pendaftaran</strong> yang sah. Harap tunjukkan kepada panitia (bisa <em>screenshot</em>/cetak).</li>
+                    <li>Ortu/anak yang namanya sudah terdaftar akan dihubungi <strong>kakak/abang GSM</strong> untuk koordinasi lebih lanjut.</li>
+                    <li class="text-rose-600 font-bold">Apabila berhalangan hadir, harap menginformasikan maksimal tgl 21 Maret.</li>
+                </ul>
             </div>
+            
         </div>
 
         <div class="mt-8 space-y-3 no-print">
