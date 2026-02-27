@@ -81,13 +81,6 @@
             document.getElementById('totalPeserta').textContent = dataPendaftarGlobal.length;
         });
 
-        // FUNGSI UNTUK MEMULAI PENDAFTARAN DARI FLYER
-        window.startRegistration = function() {
-            document.getElementById('flyerWrapper').classList.add('hidden');
-            document.getElementById('mainContentWrapper').classList.remove('hidden');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        };
-
         // FUNGSI UNTUK MENAMPILKAN TIKET
         window.showTicket = function(data) {
             document.getElementById('ticketNama').textContent = data.namaAnak;
@@ -207,21 +200,7 @@
 
     <div class="absolute top-0 left-0 w-full h-2 easter-gradient opacity-80 no-print"></div>
 
-    <div id="flyerWrapper" class="no-print pt-8 px-4 max-w-lg mx-auto relative z-10 flex flex-col items-center justify-center min-h-screen">
-        <div class="card-bg rounded-[2rem] shadow-2xl overflow-hidden border border-white w-full">
-            <div class="h-3 w-full easter-gradient"></div>
-            
-            <img src="disclaimer pra-paskah.jpeg" alt="Flyer Kunjungan Kasih Pra-Paskah" class="w-full h-auto object-cover">
-            
-            <div class="p-6 bg-white text-center">
-                <p class="text-[11px] text-gray-500 font-medium mb-4 uppercase tracking-widest">Silakan baca informasi di atas sebelum mendaftar</p>
-                <button onclick="startRegistration()" class="w-full bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white font-black py-5 rounded-2xl shadow-lg shadow-pink-200/50 transition-all active:scale-95 uppercase tracking-widest text-lg animate-pulse border border-pink-400">
-                    Daftar Segera
-                </button>
-            </div>
-        </div>
-    </div>
-    <div id="mainContentWrapper" class="hidden no-print">
+    <div id="mainContentWrapper" class="no-print">
         <div class="max-w-md mx-auto pt-10 px-4 relative z-10">
             <div class="card-bg rounded-[2rem] shadow-[0_8px_30px_rgb(0,0,0,0.08)] overflow-hidden border border-white">
                 <div class="h-3 w-full easter-gradient"></div>
