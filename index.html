@@ -99,6 +99,7 @@
 
             const notifBox = document.getElementById('successNotification');
             const ticketBadge = document.getElementById('ticketBadge');
+            const wlInfoItem = document.getElementById('wlInfoItem'); // Ambil elemen list WL info
 
             if (isWL) {
                 // Notifikasi khusus Waiting List
@@ -107,6 +108,10 @@
                 
                 ticketBadge.textContent = "WAITING LIST";
                 ticketBadge.className = "text-[10px] font-bold text-white bg-amber-500 px-3 py-1 rounded-full uppercase tracking-widest mt-2 inline-block shadow-sm";
+                ticketBadge.classList.remove('hidden'); // Munculkan badge
+
+                // Tampilkan info WL di tiket
+                wlInfoItem.classList.remove('hidden');
             } else {
                 // Notifikasi normal Peserta Utama
                 notifBox.innerHTML = `<h2 class="font-black text-lg text-green-800">Pendaftaran Berhasil! 🎉</h2><p class="text-xs mt-1 font-medium text-green-900">Silakan simpan atau cetak bukti pendaftaran di bawah ini.</p>`;
@@ -114,6 +119,10 @@
                 
                 ticketBadge.textContent = "PESERTA UTAMA";
                 ticketBadge.className = "text-[10px] font-bold text-white bg-green-500 px-3 py-1 rounded-full uppercase tracking-widest mt-2 inline-block shadow-sm";
+                ticketBadge.classList.remove('hidden'); // Munculkan badge
+
+                // Sembunyikan info WL di tiket karena ini peserta utama
+                wlInfoItem.classList.add('hidden');
             }
 
             document.getElementById('mainContentWrapper').classList.add('hidden');
@@ -353,6 +362,7 @@
             </p>
         </div>
     </div>
+
     <div id="ticketWrapper" class="hidden pt-10 px-4 max-w-md mx-auto">
         
         <div id="successNotification" class="bg-green-100 border-2 border-green-400 text-green-800 p-4 rounded-xl text-center mb-6 shadow-sm no-print">
@@ -404,7 +414,8 @@
                 <ul class="text-[9.5px] text-gray-600 list-disc pl-4 space-y-1.5 text-left leading-tight font-medium">
                     <li>E-ticket ini adalah <strong>tanda bukti pendaftaran</strong> yang sah. Harap tunjukkan kepada panitia (bisa <em>screenshot</em>/cetak).</li>
                     <li>Ortu/anak yang namanya sudah terdaftar akan dihubungi <strong>kakak/abang GSM</strong> untuk koordinasi lebih lanjut.</li>
-                    <li class="text-rose-600 font-bold">Apabila berhalangan hadir, harap menginformasikan maksimal tgl 21 Maret.</li>
+                    <li id="wlInfoItem" class="hidden text-amber-600 font-bold bg-amber-50 p-1.5 rounded border border-amber-200 mt-1">Bagi yang terdaftar Waiting List, panitia akan menghubungi kembali jika ada peserta utama yang mengundurkan diri.</li>
+                    <li class="text-rose-600 font-bold mt-1">Apabila berhalangan hadir, harap menginformasikan maksimal tgl 21 Maret.</li>
                 </ul>
             </div>
             
