@@ -31,6 +31,25 @@
         const daftarKelas = ["Daniel", "Paulus", "Ester", "POS PI"];
         let dataPendaftarGlobal = [];
 
+        // --- BATAS WAKTU PENDAFTARAN ---
+        // Ditutup pada 15 Maret 2026, 12.01 WIB (+07:00)
+        const CLOSING_DATE = new Date("2026-03-15T12:01:00+07:00"); 
+
+        function checkRegistrationStatus() {
+            if (new Date() >= CLOSING_DATE) {
+                const formElement = document.getElementById('registrationForm');
+                const closedMessage = document.getElementById('registrationClosedMessage');
+                if (formElement && closedMessage) {
+                    formElement.classList.add('hidden');
+                    closedMessage.classList.remove('hidden');
+                }
+            }
+        }
+
+        // Cek status saat halaman dimuat dan setiap 1 menit (jika tab dibiarkan terbuka)
+        window.addEventListener('DOMContentLoaded', checkRegistrationStatus);
+        setInterval(checkRegistrationStatus, 60000);
+
         // 1. MONITORING REAL-TIME & PEMBUATAN LIST
         onValue(dbRef, (snapshot) => {
             const data = snapshot.val() || {};
@@ -49,11 +68,9 @@
 
                 const option = document.createElement('option');
                 option.value = kelas;
-                // Opsi tidak didisable lagi, diganti teksnya menjadi Waiting List
                 option.textContent = sisa > 0 ? `Kelas ${kelas} (Sisa ${sisa} slot)` : `Kelas ${kelas} (Waiting List)`;
                 selectKelas.appendChild(option);
 
-                // Fitur: Ikon Printer & Penanda Waiting List (WL)
                 let barisAnak = listAnak.map((p, i) => {
                     const globalIdx = dataPendaftarGlobal.indexOf(p);
                     const isWL = i >= MAX_KUOTA;
@@ -68,7 +85,6 @@
                     </div>`;
                 }).join('');
 
-                // Visual Badge untuk Admin (Utama vs WL)
                 const wlCount = jumlah > MAX_KUOTA ? jumlah - MAX_KUOTA : 0;
                 const badgeClass = jumlah < MAX_KUOTA ? 'bg-green-100 text-green-700 border-green-200' : 'bg-amber-100 text-amber-700 border-amber-200';
                 const badgeText = wlCount > 0 ? `${MAX_KUOTA}/${MAX_KUOTA} +${wlCount}WL` : `${jumlah}/${MAX_KUOTA}`;
@@ -89,7 +105,6 @@
             document.getElementById('totalPeserta').textContent = dataPendaftarGlobal.length;
         });
 
-        // FUNGSI UNTUK MENAMPILKAN TIKET (DENGAN LOGIKA WAITING LIST)
         window.showTicket = function(data, isWL) {
             document.getElementById('ticketNama').textContent = data.namaAnak;
             document.getElementById('ticketKelas').textContent = data.kelas;
@@ -99,29 +114,25 @@
 
             const notifBox = document.getElementById('successNotification');
             const ticketBadge = document.getElementById('ticketBadge');
-            const wlInfoItem = document.getElementById('wlInfoItem'); // Ambil elemen list WL info
+            const wlInfoItem = document.getElementById('wlInfoItem'); 
 
             if (isWL) {
-                // Notifikasi khusus Waiting List
                 notifBox.innerHTML = `<h2 class="font-black text-lg text-amber-800">Status: Waiting List ⏳</h2><p class="text-xs mt-1 font-medium text-amber-900">Pendaftaran diterima. Karena kuota utama penuh, Anda masuk daftar tunggu. Panitia akan menghubungi Anda (maks tgl 21 Maret) jika ada peserta yang berhalangan.</p>`;
                 notifBox.className = "bg-amber-100 border-2 border-amber-400 p-4 rounded-xl text-center mb-6 shadow-sm no-print";
                 
                 ticketBadge.textContent = "WAITING LIST";
                 ticketBadge.className = "text-[10px] font-bold text-white bg-amber-500 px-3 py-1 rounded-full uppercase tracking-widest mt-2 inline-block shadow-sm";
-                ticketBadge.classList.remove('hidden'); // Munculkan badge
+                ticketBadge.classList.remove('hidden'); 
 
-                // Tampilkan info WL di tiket
                 wlInfoItem.classList.remove('hidden');
             } else {
-                // Notifikasi normal Peserta Utama
                 notifBox.innerHTML = `<h2 class="font-black text-lg text-green-800">Pendaftaran Berhasil! 🎉</h2><p class="text-xs mt-1 font-medium text-green-900">Silakan simpan atau cetak bukti pendaftaran di bawah ini.</p>`;
                 notifBox.className = "bg-green-100 border-2 border-green-400 p-4 rounded-xl text-center mb-6 shadow-sm no-print";
                 
                 ticketBadge.textContent = "PESERTA UTAMA";
                 ticketBadge.className = "text-[10px] font-bold text-white bg-green-500 px-3 py-1 rounded-full uppercase tracking-widest mt-2 inline-block shadow-sm";
-                ticketBadge.classList.remove('hidden'); // Munculkan badge
+                ticketBadge.classList.remove('hidden'); 
 
-                // Sembunyikan info WL di tiket karena ini peserta utama
                 wlInfoItem.classList.add('hidden');
             }
 
@@ -131,11 +142,9 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
-        // FUNGSI CETAK ULANG DARI TOMBOL ADMIN
         window.showTicketFromData = function(index) {
             const data = dataPendaftarGlobal[index];
             if (data) {
-                // Hitung dinamis status saat ini
                 const classList = dataPendaftarGlobal.filter(x => x.kelas === data.kelas);
                 const classIndex = classList.indexOf(data);
                 const isWL = classIndex >= MAX_KUOTA;
@@ -148,8 +157,15 @@
         // 2. FUNGSI KIRIM DATA PENDAFTARAN BARU
         window.submitForm = function(e) {
             e.preventDefault();
-            const btn = document.getElementById('submitBtn');
             
+            // Pengecekan ekstra saat tombol disubmit (mencegah bypass)
+            if (new Date() >= CLOSING_DATE) {
+                alert("Maaf, pendaftaran telah resmi ditutup pada 15 Maret 2026, Jam 12.01 WIB.");
+                location.reload();
+                return;
+            }
+
+            const btn = document.getElementById('submitBtn');
             const data = {
                 namaAnak: document.getElementById('namaAnak').value,
                 kelas: document.getElementById('kelasSM').value,
@@ -158,7 +174,6 @@
                 timestamp: new Date().toLocaleString('id-ID')
             };
 
-            // Hitung jumlah saat ini untuk menentukan status
             const currentCount = dataPendaftarGlobal.filter(p => p.kelas === data.kelas).length;
             const isWL = currentCount >= MAX_KUOTA;
 
@@ -177,19 +192,16 @@
             });
         };
 
-        // FUNGSI UNTUK MENCETAK PDF
         window.printTicket = function() {
             window.print();
         };
 
-        // FUNGSI KEMBALI KE FORM UTAMA
         window.closeTicket = function() {
             document.getElementById('ticketWrapper').classList.add('hidden');
             document.getElementById('mainContentWrapper').classList.remove('hidden');
             window.scrollTo({ top: 0, behavior: 'smooth' });
         };
 
-        // 3. FUNGSI EXPORT EXCEL (DENGAN KOLOM STATUS WL)
         window.exportToExcel = function() {
             if (dataPendaftarGlobal.length === 0) {
                 alert("Belum ada data untuk diexport.");
@@ -197,7 +209,6 @@
             }
 
             const reportData = dataPendaftarGlobal.map((item, index) => {
-                // Kalkulasi status saat diunduh
                 const classList = dataPendaftarGlobal.filter(x => x.kelas === item.kelas);
                 const classIndex = classList.indexOf(item);
                 const status = classIndex >= MAX_KUOTA ? "Waiting List" : "Utama";
@@ -220,7 +231,6 @@
         };
     </script>
     <style>
-        /* Easter Themed Background */
         body {
             background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
             background-color: #fdfbfb;
@@ -240,7 +250,6 @@
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #fcd34d; border-radius: 8px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #fbbf24; }
 
-        /* CSS KHUSUS SAAT DICETAK (PRINT) */
         @media print {
             body { background: white !important; }
             .no-print { display: none !important; }
@@ -313,6 +322,13 @@
                         <p class="text-[9px] text-yellow-600 text-center mt-3 font-semibold italic animate-pulse">↓ Tatal (scroll) untuk membaca sepenuhnya ↓</p>
                     </div>
 
+                    <div id="registrationClosedMessage" class="hidden bg-rose-50 border-2 border-rose-200 p-6 rounded-2xl text-center shadow-inner mt-4 mb-4">
+                        <div class="text-4xl mb-3">🔒</div>
+                        <h3 class="text-lg font-black text-rose-800 uppercase tracking-widest mb-1.5">Pendaftaran Ditutup</h3>
+                        <p class="text-xs text-rose-700 font-medium leading-relaxed">Maaf, batas waktu pendaftaran telah berakhir pada tanggal <br><strong>15 Maret 2026, Jam 12.01 WIB</strong>.</p>
+                        <p class="text-[10px] text-gray-500 mt-3">Terima kasih atas partisipasi Anda.</p>
+                    </div>
+
                     <form id="registrationForm" onsubmit="submitForm(event)" class="space-y-4.5">
                         <div>
                             <label class="text-[11px] font-extrabold text-indigo-900 uppercase ml-1 block mb-1">Nama Lengkap Anak</label>
@@ -345,7 +361,7 @@
                     <div class="text-center md:text-left">
                         <h3 class="text-xl font-black text-indigo-900 uppercase tracking-tighter flex items-center justify-center md:justify-start">
                             <span class="w-2.5 h-6 bg-pink-400 mr-2.5 rounded-full inline-block"></span>
-                            Area Rekap Peserta
+                            Area Rekap Panitia
                         </h3>
                         <p class="text-[11px] text-gray-500 font-bold uppercase mt-1">Total Anak Terdaftar: <span id="totalPeserta" class="text-pink-600 text-sm bg-pink-50 px-2 py-0.5 rounded-md border border-pink-100">0</span></p>
                     </div>
@@ -432,5 +448,4 @@
         </div>
     </div>
     </body>
-
 </html>
